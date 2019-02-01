@@ -136,9 +136,10 @@ struct opts
 };
 
 #define MAX_FQDN_LEN 255
+#define MAX_AUTH_LEN 1024 /* TW NOTE: I chose this arbitrarily. */
 #define MAX_SCHEME_LEN 9
 #define MAX_PORT_LEN 6  /* incl. : */
-#define MAX_PROXY_URL (MAX_FQDN_LEN + MAX_SCHEME_LEN + MAX_PORT_LEN + 1)
+#define MAX_PROXY_URL (MAX_SCHEME_LEN + MAX_AUTH_LEN + MAX_FQDN_LEN + MAX_PORT_LEN + 1)
 
 enum event_id_t
 {

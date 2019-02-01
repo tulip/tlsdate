@@ -96,6 +96,8 @@ know:
 #include "polarssl/ssl.h"
 #endif
 
+char* EMPTY_AUTH = "";
+
 static void
 validate_proxy_scheme(const char *scheme)
 {
@@ -128,15 +130,24 @@ validate_proxy_port(const char *port)
 }
 
 static void
-parse_proxy_uri(char *proxy, char **scheme, char **host, char **port)
+parse_proxy_uri(char *proxy, char **scheme, char **auth, char **host, char **port)
 {
-  /* Expecting a URI, so: <scheme> '://' <host> ':' <port> */
+  /* Expecting a URI, so: <scheme> '://' [<auth>@] <host> ':' <port> */
   *scheme = proxy;
   proxy = strstr(proxy, "://");
   if (!proxy)
     die("malformed proxy URI");
   *proxy = '\0'; /* terminate scheme string */
   proxy += strlen("://");
+
+  char *proxy_found = strchr(proxy, '@');
+  if (proxy_found) {
+    *auth = proxy;
+    *proxy_found = '\0';
+    proxy += strlen(*auth) + 1;
+  } else {
+    *auth = EMPTY_AUTH;
+  }
 
   *host = proxy;
   proxy = strchr(proxy, ':');
@@ -157,6 +168,7 @@ setup_proxy(BIO *ssl)
 {
   BIO *bio;
   char *scheme;
+  char *proxy_auth;
   char *proxy_host;
   char *proxy_port;
 
@@ -169,9 +181,10 @@ setup_proxy(BIO *ssl)
    * target) and swap out the connect BIO's target host and port so it'll
    * connect to the proxy instead.
    */
-  parse_proxy_uri(proxy, &scheme, &proxy_host, &proxy_port);
+  parse_proxy_uri(proxy, &scheme, &proxy_auth, &proxy_host, &proxy_port);
   bio = BIO_new_proxy();
   BIO_proxy_set_type(bio, scheme);
+  BIO_proxy_set_auth(bio, proxy_auth);
   BIO_proxy_set_host(bio, host);
   BIO_proxy_set_port(bio, atoi(port));
   host = proxy_host;
