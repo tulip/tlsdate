@@ -16,6 +16,7 @@
 #include "util.h"
 
 struct proxy_ctx {
+  char *auth;
   char *host;
   uint16_t port;
   int connected;
@@ -26,6 +27,7 @@ BIO *BIO_new_proxy();
 
 /* These do not take ownership of their string arguments. */
 int BIO_proxy_set_type (BIO *b, const char *type);
+int BIO_proxy_set_auth (BIO *b, const char *auth);
 int BIO_proxy_set_host (BIO *b, const char *host);
 void BIO_proxy_set_port (BIO *b, uint16_t port);
 
